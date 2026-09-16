@@ -13,13 +13,13 @@ Site mobile-first/PWA para Almeida Construções, Av. Hermes de Almeida, 89, Mur
 
 ## O que ainda não está funcionando
 
-O histórico confirmou que o site anterior era um protótipo. Esta versão **não** possui projeto Supabase vinculado, cadastro/login, banco de produtos, pedidos registrados, painel administrativo protegido ou carteira de cashback. Os botões de conta/pedidos informam isso claramente. A mensagem de WhatsApp não cria reserva de saldo nem confirma uma venda.
+O histórico confirmou que o site anterior era um protótipo. Esta versão agora está vinculada ao projeto Supabase Almeida Construções e lê o catálogo público do banco. O banco já contém 52 produtos e 89 variações. Cadastro/login, criação de pedidos, painel administrativo protegido e carteira de cashback ainda serão ligados ao checkout; os botões de conta/pedidos permanecem informativos até essa etapa. A mensagem de WhatsApp ainda não cria reserva de saldo nem confirma uma venda.
 
 As imagens individuais e as fichas técnicas verificadas ainda não foram recuperadas; só a logo e a fachada estavam disponíveis como anexos. Por isso a página de produto mostra os dados comerciais informados e não inventa especificações. Os ZIPs mencionados no histórico aparecem apenas como referências de conteúdo e não vieram como arquivos acessíveis nesta sessão.
 
 ## Próxima etapa de implementação real
 
-Criar/obter acesso a um projeto Supabase, implementar as tabelas e funções transacionais descritas em `docs/BACKEND.md`, carregar o catálogo e trocar o checkout local por criação de pedido validada no servidor. Só então habilitar login, pedidos, administração e cashback. Em 15/09/2026, a conexão Supabase listou zero projetos acessíveis nesta sessão.
+Implementar as funções transacionais descritas em `docs/BACKEND.md`, trocar o checkout local por criação de pedido validada no servidor e concluir autenticação, administração e cashback. Só então habilitar as áreas de conta e pedidos.
 
 ## Uso local
 

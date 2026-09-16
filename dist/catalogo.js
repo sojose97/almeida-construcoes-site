@@ -1,5 +1,5 @@
 // Catálogo transcrito dos preços informados pelo proprietário no histórico.
-const produtos = [
+let produtos = [
 ['Nobrecar','APC Orange','Limpadores',[['500 ml',2390],['5 L',6490]]],
 ['Nobrecar','Aroma','Aromatizadores',[['Nobre',4390],['Romã',4390],['Sport',4390]]],
 ['Nobrecar','Boina de espuma branca','Boinas',[['5 pol.',5990],['6 pol.',6390]]],
