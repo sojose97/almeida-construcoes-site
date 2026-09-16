@@ -17,3 +17,6 @@
 
 /* grade de seleção do painel */
 .admin-layout{display:block}.admin-list-wrap{position:static;max-height:none;margin-bottom:22px;overflow:visible}.admin-products{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.admin-product{min-height:76px;padding:9px;gap:6px}.admin-product b{font-size:.82rem;line-height:1.18;overflow-wrap:anywhere}.admin-product small{font-size:.68rem;line-height:1.18;letter-spacing:0}.admin-empty{margin-top:22px}.product-editor{margin-top:22px}@media(max-width:800px){.admin-list-wrap{max-height:none;overflow:visible}.admin-products{max-height:none;overflow:visible}}@media(max-width:460px){.admin-products{gap:5px}.admin-product{min-height:70px;padding:7px}.admin-product b{font-size:.69rem}.admin-product small{font-size:.58rem}.admin-dot{width:6px;height:6px;margin-top:3px}}
+
+/* tamanho definido para os cards de seleção */
+.admin-products{grid-template-columns:repeat(auto-fill,192px);gap:8px}.admin-product{width:192px;height:76px;min-height:76px;overflow:hidden}
