@@ -18,17 +18,12 @@ function send(){let payment=$('#payment').value,delivery=$('#fulfillment').value
 $('#filters').onclick=e=>{if(e.target.dataset.group){group=e.target.dataset.group;render()}};$('#grid').onchange=e=>{if(!e.target.matches('[data-variant]'))return;const card=e.target.closest('[data-id]'),p=produtos[Number(card.dataset.id)];card.querySelector('.card-price').innerHTML=cardPrice(p,Number(e.target.value))};$('#grid').onclick=e=>{const add=e.target.closest('[data-add]');if(!add)return;const card=add.closest('[data-id]'),id=Number(card.dataset.id),vi=Number(card.querySelector('[data-variant]').value),qty=Math.max(1,Math.floor(Number(card.querySelector('[data-quantity]').value)||1)),item=cart.find(i=>i.id===id&&i.vi===vi);if(item)item.qty+=qty;else cart.push({id,vi,qty});saveCart();render()};$('#search').oninput=e=>{query=e.target.value.toLocaleLowerCase('pt-BR');render()};$('#cart-button').onclick=openCart;$('#cart-items').onclick=e=>{if(e.target.dataset.remove!==undefined){cart.splice(Number(e.target.dataset.remove),1);saveCart();$('#cart-dialog').close();render();openCart()}};document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>b.closest('dialog').close());function info(title){$('#info').innerHTML=`<h2>${title}</h2><p>Cadastro, pedidos e cashback precisam do backend Supabase. Esta versão permite consultar o catálogo e montar o pedido para WhatsApp, mas ainda não registra uma compra na conta.</p>`;$('#info-dialog').showModal()}$('#account').onclick=()=>info('Minha conta');$('#orders').onclick=()=>info('Meus pedidos');render();
 async function loadCatalogFromSupabase(){
   try{
-    const response=await fetch(ALMEIDA_SUPABASE_URL+'/rest/v1/products?active=eq.true&select=brand,name,subcategory,image_url,product_variants(name,price_cents,active)&order=name.asc',{headers:{apikey:ALMEIDA_SUPABASE_KEY,Authorization:'Bearer '+ALMEIDA_SUPABASE_KEY}});
+    const response=await fetch(ALMEIDA_SUPABASE_URL+'/rest/v1/products?active=eq.true&select=brand,name,subcategory,image_url,image_override_url,product_variants(name,price_cents,active)&order=name.asc',{headers:{apikey:ALMEIDA_SUPABASE_KEY,Authorization:'Bearer '+ALMEIDA_SUPABASE_KEY}});
     if(!response.ok) throw new Error('Catalog status '+response.status);
     const remote=await response.json();
-    const normalized=remote.map((p,id)=>({id,marca:p.brand,nome:p.name,grupo:p.subcategory,imagem:localProductImage(p.brand,p.name,p.image_url),variacoes:(p.product_variants||[]).filter(v=>v.active).map(v=>({nome:v.name,preco:v.price_cents}))})).filter(p=>p.variacoes.length);
+    const normalized=remote.map((p,id)=>({id,marca:p.brand,nome:p.name,grupo:p.subcategory,imagem:p.image_override_url||localProductImage(p.brand,p.name,p.image_url),variacoes:(p.product_variants||[]).filter(v=>v.active).map(v=>({nome:v.name,preco:v.price_cents}))})).filter(p=>p.variacoes.length);
     if(normalized.length){produtos=normalized;render()}
   }catch(error){console.info('Catálogo local usado enquanto o banco não está disponível.',error)}
 }
 loadCatalogFromSupabase();
 if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js');
-
-
-
-
-
