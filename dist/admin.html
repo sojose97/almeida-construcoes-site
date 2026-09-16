@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#141414"><meta name="robots" content="noindex"><title>Painel · Almeida Construções</title><link rel="icon" href="assets/logo.jpg"><link rel="stylesheet" href="style.css?v=22"></head>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#141414"><meta name="robots" content="noindex"><title>Painel · Almeida Construções</title><link rel="icon" href="assets/logo.jpg"><link rel="stylesheet" href="style.css?v=23"></head>
 <body class="admin-page">
 <header><a href="index.html" class="brand"><img src="assets/logo.jpg" alt="Logo Almeida Construções"><span>ALMEIDA<br>CONSTRUÇÕES</span></a><nav><a class="admin-back" href="index.html">Ver catálogo</a></nav></header>
 <main class="admin-main">
@@ -7,10 +7,10 @@
     <small>ÁREA RESTRITA</small><h1>Painel da loja</h1><p>Entre para atualizar produtos, variações, preços, disponibilidade e fotos.</p>
     <form id="login-form" class="admin-form" novalidate>
       <label>E-mail<input id="login-email" type="email" autocomplete="email" required placeholder="voce@exemplo.com"></label>
-      <label>Senha<input id="login-password" type="password" autocomplete="current-password" required minlength="6" placeholder="Sua senha"></label>
+      <label>Senha<input id="login-password" type="password" autocomplete="current-password" required minlength="6" placeholder="Sua senha"></label><label class="show-password"><input id="show-login-password" type="checkbox"> Mostrar senha</label>
       <button class="primary" type="submit">Entrar no painel</button>
     </form>
-    <details class="admin-help"><summary>Primeiro acesso?</summary><p>Use o e-mail que foi autorizado para a loja. Depois crie sua senha neste mesmo aparelho.</p><form id="signup-form" class="admin-form" novalidate><label>Nome<input id="signup-name" autocomplete="name" placeholder="Seu nome"></label><label>E-mail autorizado<input id="signup-email" type="email" autocomplete="email" required placeholder="voce@exemplo.com"></label><label>Crie uma senha<input id="signup-password" type="password" autocomplete="new-password" required minlength="6" placeholder="No mínimo 6 caracteres"></label><button class="secondary" type="submit">Criar acesso</button></form></details>
+    <details class="admin-help"><summary>Primeiro acesso?</summary><p>Use o e-mail que foi autorizado para a loja. Depois crie sua senha neste mesmo aparelho.</p><form id="signup-form" class="admin-form" novalidate><label>Nome<input id="signup-name" autocomplete="name" placeholder="Seu nome"></label><label>E-mail autorizado<input id="signup-email" type="email" autocomplete="email" required placeholder="voce@exemplo.com"></label><label>Crie uma senha<input id="signup-password" type="password" autocomplete="new-password" required minlength="6" placeholder="No mínimo 6 caracteres"></label><label class="show-password"><input id="show-signup-password" type="checkbox"> Mostrar senha</label><button class="secondary" type="submit">Criar acesso</button></form></details>
     <p id="login-message" class="admin-message" aria-live="polite"></p>
   </section>
   <section id="admin-panel" hidden>
@@ -18,5 +18,5 @@
     <div class="admin-layout"><aside class="admin-list-wrap"><label class="search">Buscar produto ou marca<input id="admin-search" type="search" placeholder="Buscar no catálogo"></label><div id="admin-products" class="admin-products"></div></aside><section id="editor-empty" class="admin-empty"><h2>Escolha um produto</h2><p>Use a lista para abrir a edição.</p></section><form id="product-editor" class="product-editor" hidden></form></div>
   </section>
 </main>
-<script src="supabase-config.js"></script><script src="admin.js?v=22"></script>
+<script src="supabase-config.js"></script><script src="admin.js?v=23"></script>
 </body></html>
