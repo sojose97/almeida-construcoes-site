@@ -2,7 +2,7 @@
 if(!document.querySelector('#grid'))return;
 const renderWithPromotion=()=>{
   const groups=['Todos','Promoção',...new Set(produtos.map(p=>p.grupo).filter(Boolean))];
-  $('#filters').innerHTML=groups.map(g=>`<button class="${g===group?'active':''}" data-group="${g}">${g.toUpperCase()}</button>`).join('');
+  $('#filters').innerHTML=groups.map(g=>`<button class="${g===group?'active ':''}${g==='Promoção'?'promotion-tab':''}" data-group="${g}">${g.toUpperCase()}</button>`).join('');
   const isPromo=p=>(p.variacoes||[]).some(v=>{const d=priceData(v);return d.promo>0&&d.promo<d.cash});
   const list=produtos.filter(p=>(group==='Todos'||(group==='Promoção'?isPromo(p):p.grupo===group))&&`${p.nome} ${p.marca}`.toLocaleLowerCase('pt-BR').includes(query));
   $('#result-count').textContent=`${list.length} produtos`;
