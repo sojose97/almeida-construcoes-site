@@ -59,12 +59,14 @@ try{await authRequest('resend?redirect_to='+encodeURIComponent(confirmationRedir
 async function auth(e,signup){e.preventDefault();const msg=document.querySelector('#customer-message');msg.textContent='Entrando...';msg.classList.remove('error');try{const email=(signup?document.querySelector('#customer-signup-email'):document.querySelector('#customer-email')).value.trim(),password=(signup?document.querySelector('#customer-signup-password'):document.querySelector('#customer-password')).value;const d=await authRequest(signup?'signup?redirect_to='+encodeURIComponent(confirmationRedirect):'token?grant_type=password',signup?{email,password,data:{full_name:document.querySelector('#customer-name').value.trim(),phone:document.querySelector('#customer-phone')?.value.trim(),birth_date:document.querySelector('#customer-birth-date')?.value||null,default_address:{street:document.querySelector('#customer-street')?.value.trim(),neighborhood:document.querySelector('#customer-neighborhood')?.value.trim(),number:document.querySelector('#customer-number')?.value.trim(),reference:document.querySelector('#customer-reference')?.value.trim()}}}:{email,password});const next=authSession(d);if(!next){if(!signup)throw Error('O serviço não retornou uma sessão válida. Tente novamente.');msg.textContent='Confira seu e-mail para confirmar o cadastro. Use apenas o link mais recente.';return}saveSession(next);if(signup&&d.user){await api('/rest/v1/profiles?id=eq.'+d.user.id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({full_name:document.querySelector('#customer-name').value.trim(),phone:document.querySelector('#customer-phone').value.trim(),birth_date:document.querySelector('#customer-birth-date').value||null,default_address:{street:document.querySelector('#customer-street').value.trim(),neighborhood:document.querySelector('#customer-neighborhood').value.trim(),number:document.querySelector('#customer-number').value.trim(),reference:document.querySelector('#customer-reference').value.trim()}})})}document.querySelector('#account-dialog').close();updateNav()}catch(x){msg.textContent=x.message;msg.classList.add('error')}}
 function updateNav(){const a=document.querySelector('#account');if(a)a.textContent=session?'Minha conta ✓':'Minha conta'}
 async function orders(){dialog();const v=document.querySelector('#orders-view');if(!session){v.innerHTML='<h2>Meus pedidos</h2><p>Entre na sua conta para visualizar seus pedidos.</p>';document.querySelector('#orders-dialog').showModal();return}try{const rows=await api('/rest/v1/orders?select=id,public_number,status,payment_method,amount_due_cents,cashback_reserved_cents,cashback_credited_cents,created_at,order_items(product_name,variant_name,quantity,line_total_cents)&order=created_at.desc');v.innerHTML='<h2>Meus pedidos</h2>'+(rows.length?rows.map(o=>`<article class="order-card"><strong>Pedido #${o.public_number}</strong><span>${o.status==='pending'?'Aguardando confirmação':o.status==='confirmed'?'Confirmado':'Cancelado'}</span><p>${o.order_items.map(i=>`${i.quantity}× ${i.product_name} — ${money(i.line_total_cents)}`).join('<br>')}</p><b>Total: ${money(o.amount_due_cents)}</b></article>`).join(''):'<p>Você ainda não tem pedidos.</p>')}catch(e){v.innerHTML='<p>'+e.message+'</p>'}document.querySelector('#orders-dialog').showModal()}
+function firstTwoNames(value){return String(value||'').trim().split(/\s+/).filter(Boolean).slice(0,2).join(' ')}
 function formatCustomerAddress(value){
-  if(!value)return '';
-  if(typeof value==='string')return value.trim();
-  if(typeof value!=='object')return '';
-  if(value.text)return String(value.text).trim();
-  return [['Rua',value.street],['Número',value.number],['Bairro',value.neighborhood],['Referência',value.reference],['Cidade',value.city],['CEP',value.zip]].filter(([,part])=>part!=null&&String(part).trim()).map(([label,part])=>label+': '+String(part).trim()).join(', ');
+  if(!value)return {line:'',reference:''};
+  if(typeof value==='string')return {line:value.trim(),reference:''};
+  if(typeof value!=='object')return {line:'',reference:''};
+  if(value.text)return {line:String(value.text).trim(),reference:''};
+  const clean=(part,prefix)=>String(part||'').trim().replace(new RegExp('^'+prefix+'\\s+','i'),'');
+  return {line:[clean(value.street,'rua'),clean(value.number,''),clean(value.neighborhood,'bairro')].filter(Boolean).join(', '),reference:String(value.reference||'').trim()};
 }
 async function getCustomerDetails(){
   const fallback=session?.user||{};
@@ -72,12 +74,11 @@ async function getCustomerDetails(){
     const user=await api('/auth/v1/user');
     const rows=await api('/rest/v1/profiles?select=full_name,phone,default_address&id=eq.'+encodeURIComponent(user.id));
     const profile=rows?.[0]||{};
-    return {name:profile.full_name||user.user_metadata?.full_name||user.email||'',email:user.email||'',phone:profile.phone||'',address:formatCustomerAddress(profile.default_address)};
+    return {name:profile.full_name||user.user_metadata?.full_name||user.email||'',phone:profile.phone||'',address:formatCustomerAddress(profile.default_address)};
   }catch{
-    return {name:fallback.user_metadata?.full_name||fallback.email||'',email:fallback.email||'',phone:'',address:''};
+    return {name:fallback.user_metadata?.full_name||fallback.email||'',phone:'',address:{line:'',reference:''}};
   }
-}
-async function sendOrder(){
+}async function sendOrder(){
   if(!$('#confirm-cart-items')?.checked){$('#confirm-cart-items')?.focus();return}
   if(!session){account();return}
   const payment=$('#payment').value==='cartao'?'card':$('#payment').value==='dinheiro'?'cash':'pix',fulfillment=$('#fulfillment').value==='entrega'?'delivery':'pickup',addr=$('#address')?.value.trim(),requested=Math.max(0,Math.round(Number($('#cashback-use')?.value||0)*100));
@@ -87,7 +88,7 @@ async function sendOrder(){
   const customer=await getCustomerDetails();
   const result=await api('/rest/v1/rpc/place_order',{method:'POST',body:JSON.stringify({p_items:items,p_payment_method:payment,p_fulfillment_method:fulfillment,p_delivery_address:addr?{text:addr}:null,p_cashback_requested_cents:requested})});
   const lines=cart.map(i=>{const p=produtos[i.id],v=p.variacoes[i.vi];return `${i.qty}× ${p.nome} — ${v.nome}`});
-  const customerDetails=[`Cliente: ${customer.name||'Não informado'}`,`E-mail: ${customer.email||'Não informado'}`,customer.phone?`Telefone: ${customer.phone}`:'',`Endereço: ${addr||customer.address||'Não informado'}`].filter(Boolean).join('\n');
+  const customerAddress=customer.address?.line||'';const customerReference=customer.address?.reference||'';const customerDetails=[`Cliente: ${firstTwoNames(customer.name)||'Não informado'}`,customer.phone?`Telefone: ${customer.phone}`:'',`Endereço: ${addr||customerAddress||'Não informado'}`,customerReference?`Referência: ${customerReference}`:''].filter(Boolean).join('\n')
   const msg=`Olá! Pedido #${result.public_number} da Almeida Construções.\n\n${customerDetails}\n\nItens:\n${lines.join('\n')}\n\nTotal: ${money(result.amount_due_cents)}\nPagamento: ${payment==='pix'?'PIX':payment==='cash'?'Dinheiro':'Cartão'}\nPedido registrado no site e aguardando confirmação.`;
   window.open('https://wa.me/553220201300?text='+encodeURIComponent(msg),'_blank','noopener');cart=[];saveCart();$('#cart-dialog').close();alert('Pedido registrado! Você pode acompanhar em Meus pedidos.');
 }
