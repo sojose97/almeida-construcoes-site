@@ -25,7 +25,7 @@
       notice=document.createElement('p');
       notice.id='cashback-available';
       notice.className='cashback-available';
-      if(label)label.parentNode.insertBefore(notice,label);
+      if(label)label.parentNode.insertBefore(notice,label.nextSibling);
     }
     notice.textContent='Consultando saldo de cashback...';
     input.disabled=true;
