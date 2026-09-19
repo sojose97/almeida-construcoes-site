@@ -5,7 +5,7 @@
   const availableBalance=entries=>entries.reduce((total,entry)=>{
     const cents=Math.max(0,Number(entry.amount_cents)||0);
     if(entry.entry_type==='credit'||entry.entry_type==='release')return total+cents;
-    if(entry.entry_type==='debit'||entry.entry_type==='reserve')return total-cents;
+    if(entry.entry_type==='debit'||entry.entry_type==='reserve'||entry.entry_type==='reversal')return total-cents;
     return total;
   },0);
   async function loadBalance(){
