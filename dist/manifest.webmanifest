@@ -1,2 +1,5 @@
-{"id":"./","name":"Almeida Construções","short_name":"Almeida","start_url":"./","scope":"./","display":"standalone","background_color":"#141414","theme_color":"#141414","description":"Catálogo da Almeida Construções em Muriaé.","icons":[{"src":"assets/logo.jpg","sizes":"150x150","type":"image/jpeg","purpose":"any maskable"}]}
-
+Get-Content: 
+Line |
+   2 |  Get-Content -Raw dist/manifest.webmanifest
+     |  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     | Cannot find path 'C:\Users\sojos\Documents\Codex\2026-09-15\referenced-chatgpt-conversation-this-is-an\dist\manifest.webmanifest' because it does not exist.
