@@ -1,8 +1,5 @@
-(function(){
-const sessionKey='almeida-customer-session';
-document.querySelector('#orders')?.remove();
-const account=document.querySelector('#account');
-if(!account)return;
-const openLogin=account.onclick;
-account.onclick=()=>{try{const session=JSON.parse(localStorage.getItem(sessionKey)||'null');if(session?.access_token){location.href='conta.html';return}}catch{}if(openLogin)openLogin.call(account)};
-})();
+Get-Content: 
+Line |
+   2 |  Get-Content -Raw dist/account-nav.js
+     |  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     | Cannot find path 'C:\Users\sojos\Documents\Codex\2026-09-15\referenced-chatgpt-conversation-this-is-an\dist\account-nav.js' because it does not exist.
