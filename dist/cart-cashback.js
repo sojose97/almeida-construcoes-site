@@ -1,6 +1,6 @@
 (function(){
   const sessionKey='almeida-customer-session';
-  const money=cents=>Number(cents||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+  const money=cents=>(Number(cents||0)/100).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
   const getSession=()=>{try{return JSON.parse(localStorage.getItem(sessionKey)||'null')}catch{return null}};
   const availableBalance=entries=>entries.reduce((total,entry)=>{
     const cents=Math.max(0,Number(entry.amount_cents)||0);
