@@ -14,7 +14,7 @@ if(cart&&!cart.querySelector('.cart-symbol')){
 }
 
 function renderAccountButton(){
-  account.innerHTML='<span class="account-symbol" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="9" r="3" class="account-symbol-cutout"/><path d="M5.8 19c.9-3.1 3-4.7 6.2-4.7s5.3 1.6 6.2 4.7" class="account-symbol-cutout"/></svg></span><span class="account-copy"><span class="account-label">Minha Conta</span><small id="account-greeting" class="account-greeting" hidden></small></span>';
+  account.innerHTML='<span class="account-symbol" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="8.7" r="3.2" class="account-symbol-cutout"/><path d="M5.5 19.2c1-3.2 3.1-4.9 6.5-4.9s5.5 1.7 6.5 4.9H5.5Z" class="account-symbol-cutout"/></svg></span><span class="account-copy"><span class="account-label">Minha Conta</span><small id="account-greeting" class="account-greeting" hidden></small></span>';
   Object.assign(account.style,{display:'inline-flex',alignItems:'center',gap:'8px',textAlign:'left',lineHeight:'1.05'});
 }
 renderAccountButton();
