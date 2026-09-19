@@ -20,7 +20,7 @@ function renderAccountButton(){
 renderAccountButton();
 const greeting=account.querySelector('#account-greeting');
 Object.assign(account.querySelector('.account-symbol').style,{display:'grid',placeItems:'center',width:'30px',height:'30px',flex:'0 0 30px'});
-Object.assign(account.querySelector('.account-symbol svg').style,{width:'30px',height:'30px',fill:'#f1f1ed'});
+Object.assign(account.querySelector('.account-symbol svg').style,{width:'30px',height:'30px',fill:'#ffd026'});
 Object.assign(account.querySelector('.account-symbol-cutout').style,{fill:'#191919'});
 Object.assign(account.querySelector('.account-copy').style,{display:'flex',flexDirection:'column',gap:'3px'});
 Object.assign(greeting.style,{display:'block',color:'#ffd026',fontSize:'11px',lineHeight:'1',fontWeight:'900',whiteSpace:'nowrap',textTransform:'uppercase'});
