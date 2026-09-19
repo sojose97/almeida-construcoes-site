@@ -33,5 +33,6 @@
 .admin-page [hidden]{display:none!important}
 
 .cashback-available{margin:12px 0 0;color:#bbb;font-size:.9rem}.cashback-available strong{color:#ffd026}.field input:disabled{opacity:.6;cursor:not-allowed}
+.checkout-confirmation{display:flex;align-items:flex-start;gap:9px;margin:14px 0 4px;color:#ddd;font-size:13px;line-height:1.4;cursor:pointer}.checkout-confirmation input{width:18px;height:18px;flex:0 0 auto;margin:0;accent-color:#ffd026}.primary:disabled{opacity:.45;cursor:not-allowed;filter:grayscale(.2)}
 
 
