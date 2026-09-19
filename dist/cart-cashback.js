@@ -48,6 +48,7 @@
       input.value='0';
     }
   }
+  window.refreshCashbackField=enhanceCart;
   const cartButton=document.querySelector('#cart-button');
   if(cartButton)cartButton.addEventListener('click',()=>setTimeout(enhanceCart,0));
 })();
