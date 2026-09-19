@@ -48,10 +48,7 @@
       input.value='0';
     }
   }
-  const originalOpenCart=window.openCart;
-  if(typeof originalOpenCart!=='function')return;
-  window.openCart=()=>{originalOpenCart();enhanceCart();};
   const cartButton=document.querySelector('#cart-button');
-  if(cartButton)cartButton.onclick=window.openCart;
+  if(cartButton)cartButton.addEventListener('click',()=>setTimeout(enhanceCart,0));
 })();
 
