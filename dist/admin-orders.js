@@ -8,16 +8,21 @@ async function directStatus(orderId,status){
   if(order.status==='cancelled')return;
   if(status==='confirmed'&&order.status!=='pending')return;
   if(status==='cancelled'&&!['pending','confirmed'].includes(order.status))throw new Error('Este pedido não pode ser cancelado no estado atual.');
+  const paid=Math.max(0,Number(order.amount_due_cents)||0);
   const reserved=Math.max(0,Number(order.cashback_reserved_cents)||0),entryType=status==='confirmed'?'debit':'release';
   if(reserved){
     const existing=await request('/rest/v1/wallet_entries?select=id&order_id=eq.'+encodeURIComponent(order.id)+'&entry_type=eq.'+entryType);
-    if(!existing.length)await request('/rest/v1/wallet_entries',{method:'POST',headers:{'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify({user_id:order.user_id,order_id:order.id,entry_type:entryType,amount_cents:reserved})});
+      if(!existing.length)await request('/rest/v1/wallet_entries',{method:'POST',headers:{'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify({user_id:order.user_id,order_id:order.id,entry_type:entryType,amount_cents:reserved})});
+  }
+  if(status==='confirmed'){
+    const credit=Math.floor(paid*.02);
+    if(credit){const existing=await request('/rest/v1/wallet_entries?select=id&order_id=eq.'+encodeURIComponent(order.id)+'&entry_type=eq.credit');if(!existing.length)await request('/rest/v1/wallet_entries',{method:'POST',headers:{'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify({user_id:order.user_id,order_id:order.id,entry_type:'credit',amount_cents:credit})});}
   }
   if(status==='cancelled'&&order.status==='confirmed'){
     const credited=Math.max(0,Number(order.cashback_credited_cents)||0);
     if(credited){const existing=await request('/rest/v1/wallet_entries?select=id&order_id=eq.'+encodeURIComponent(order.id)+'&entry_type=eq.reversal');if(!existing.length)await request('/rest/v1/wallet_entries',{method:'POST',headers:{'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify({user_id:order.user_id,order_id:order.id,entry_type:'reversal',amount_cents:credited})});}
   }
-  const paid=Math.max(0,Number(order.amount_due_cents)||0),patch=status==='confirmed'?{status:'confirmed',amount_paid_cents:paid,cashback_credited_cents:Math.floor(paid*.02),confirmed_at:new Date().toISOString()}:{status:'cancelled',cancelled_at:new Date().toISOString(),...(order.status==='confirmed'?{cashback_credited_cents:0}:{})};
+  const patch=status==='confirmed'?{status:'confirmed',amount_paid_cents:paid,cashback_credited_cents:Math.floor(paid*.02),confirmed_at:new Date().toISOString()}:{status:'cancelled',cancelled_at:new Date().toISOString(),...(order.status==='confirmed'?{cashback_credited_cents:0}:{})};
   const changed=await request('/rest/v1/orders?id=eq.'+encodeURIComponent(order.id)+'&status=eq.'+encodeURIComponent(order.status),{method:'PATCH',headers:{'Content-Type':'application/json',Prefer:'return=representation'},body:JSON.stringify(patch)});
   if(!changed?.length)throw new Error('O pedido já foi alterado por outro acesso.');
 }
