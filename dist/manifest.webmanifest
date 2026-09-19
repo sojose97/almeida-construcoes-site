@@ -1,5 +1,2 @@
-Get-Content: 
-Line |
-   2 |  Get-Content -Raw dist/manifest.webmanifest
-     |  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-     | Cannot find path 'C:\Users\sojos\Documents\Codex\2026-09-15\referenced-chatgpt-conversation-this-is-an\dist\manifest.webmanifest' because it does not exist.
+{"id":"./","name":"Almeida Construções","short_name":"Almeida Construções","start_url":"./","scope":"./","display":"standalone","background_color":"#141414","theme_color":"#141414","description":"Catálogo da Almeida Construções em Muriaé.","icons":[{"src":"assets/pwa-icon-192.png","sizes":"192x192","type":"image/png","purpose":"any maskable"},{"src":"assets/pwa-icon-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}]}
+
