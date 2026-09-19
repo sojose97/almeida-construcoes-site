@@ -2,4 +2,5 @@
 .account-forgot,.account-register{display:block!important;text-align:left!important}.account-register{margin-top:4px!important}
 .account-panel[hidden]{display:none!important}.account-dashboard-card.active{background:#4a4d4e;outline:2px solid #ffd026;outline-offset:-2px}
 .account-card .account-form-row{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}
+.account-signup-card{max-width:650px}.account-signup-card .account-form-row{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}.account-signup-card .account-section-title{border-top:1px solid #45494b;margin-top:6px;padding-top:12px}.account-signup-card .account-section-title h3{margin:5px 0 0;font-size:1rem}.account-signup-card label>span{display:flex;align-items:center;gap:8px}.account-signup-card input[type=checkbox]{width:17px;height:17px;accent-color:#ffd026}
 
