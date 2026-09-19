@@ -3,6 +3,15 @@ const sessionKey='almeida-customer-session';
 document.querySelector('#orders')?.remove();
 const account=document.querySelector('#account');
 if(!account)return;
+const cart=document.querySelector('#cart-button');
+if(cart&&!cart.querySelector('.cart-symbol')){
+  const count=cart.querySelector('#cart-count');
+  cart.textContent='';
+  cart.insertAdjacentHTML('afterbegin','<span class="cart-symbol" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 4h2l2.4 11.4a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 1.9-1.4L21 8H7"/><circle cx="10" cy="20" r="1.3"/><circle cx="18" cy="20" r="1.3"/></svg></span><span>Carrinho</span>');
+  if(count)cart.appendChild(count);
+  Object.assign(cart.style,{display:'inline-flex',alignItems:'center',gap:'6px'});
+  Object.assign(cart.querySelector('.cart-symbol svg').style,{width:'18px',height:'18px',fill:'none',stroke:'#ffd026',strokeWidth:'2',strokeLinecap:'round',strokeLinejoin:'round'});
+}
 
 function renderAccountButton(){
   account.innerHTML='<span class="account-symbol" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="9" r="3" class="account-symbol-cutout"/><path d="M5.8 19c.9-3.1 3-4.7 6.2-4.7s5.3 1.6 6.2 4.7" class="account-symbol-cutout"/></svg></span><span class="account-copy"><span class="account-label">Minha Conta</span><small id="account-greeting" class="account-greeting" hidden></small></span>';
