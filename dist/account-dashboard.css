@@ -4,3 +4,8 @@
 .account-card .account-form-row{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}
 .account-signup-card{max-width:650px}.account-signup-card .account-form-row{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}.account-signup-card .account-section-title{border-top:1px solid #45494b;margin-top:6px;padding-top:12px}.account-signup-card .account-section-title h3{margin:5px 0 0;font-size:1rem}.account-signup-card label>span{display:flex;align-items:center;gap:8px}.account-signup-card input[type=checkbox]{width:17px;height:17px;accent-color:#ffd026}
 
+.account-dashboard-cards{grid-template-columns:repeat(5,minmax(0,1fr))}
+.account-wallet{text-align:center}.account-wallet .account-card-heading{text-align:left}.wallet-balance-label{color:#bfc4c4;font-size:.95rem;margin-top:14px}.wallet-balance{display:block;color:#ffd026;font-size:clamp(2.3rem,6vw,4rem);line-height:1.1;margin:12px 0}.wallet-history{text-align:left;margin-top:28px;border-top:1px solid #45494b;padding-top:18px}.wallet-history h3{margin:0 0 10px;color:#f4f4ee}.wallet-entry{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:12px 0;border-bottom:1px solid #383d3f}.wallet-entry strong,.wallet-entry small{display:block}.wallet-entry small{color:#aaa;margin-top:4px}.wallet-entry-amount{white-space:nowrap}.wallet-entry-amount.positive{color:#9de29c}.wallet-entry-amount.negative{color:#ffaaa0}
+@media(max-width:860px){.account-dashboard-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+
