@@ -16,8 +16,7 @@ Object.assign(account.querySelector('.account-symbol-cutout').style,{fill:'#1919
 Object.assign(account.querySelector('.account-copy').style,{display:'flex',flexDirection:'column',gap:'3px'});
 Object.assign(greeting.style,{display:'block',color:'#ff3344',fontSize:'11px',lineHeight:'1',fontWeight:'900',whiteSpace:'nowrap',textTransform:'uppercase'});
 
-const openLogin=account.onclick;
-account.onclick=()=>{try{const session=JSON.parse(localStorage.getItem(sessionKey)||'null');if(session?.access_token){location.href='conta.html';return}}catch{}if(openLogin)openLogin.call(account)};
+account.onclick=()=>{location.href='conta.html'};
 
 // auth-storefront updates the button text after login/logout. Restore the two-line layout.
 const buttonObserver=new MutationObserver(()=>{if(!account.querySelector('.account-label')){renderAccountButton();loadGreeting()}});
