@@ -8,11 +8,14 @@ async function changeStatus(orderId,status){
   try{
     await request("/rest/v1/rpc/admin_set_order_status_v2",{method:"POST",body});
   }catch(error){
-    // Both endpoints execute the same atomic, server-side transition. The
-    // v1 retry handles a short PostgREST schema-cache lag after a migration
-    // without ever falling back to direct client-side writes.
-    if(!/schema cache|could not find function|PGRST202/i.test(String(error&&error.message||error)))throw error;
-    await request("/rest/v1/rpc/admin_set_order_status",{method:"POST",body});
+    // Both endpoints execute the same atomic, server-side transition. Retry
+    // the compatibility endpoint for deployments whose PostgREST cache still
+    // serves an older function definition. There are no direct table writes.
+    try{
+      await request("/rest/v1/rpc/admin_set_order_status",{method:"POST",body});
+    }catch(fallbackError){
+      throw fallbackError;
+    }
   }
 }
 window.loadAdminOrders=loadOrders;
