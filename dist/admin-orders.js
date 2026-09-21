@@ -14,11 +14,11 @@ async function changeStatus(orderId,status){
     try{
       await request("/rest/v1/rpc/admin_set_order_status",{method:"POST",body});
     }catch(fallbackError){
-      throw fallbackError;
+      throw new Error(String(fallbackError&&fallbackError.message||fallbackError)+" (v2: "+String(error&&error.message||error)+")");
     }
   }
 }
 window.loadAdminOrders=loadOrders;
-document.querySelector('#admin-order-list').onclick=async e=>{const b=e.target.closest('[data-confirm],[data-cancel]');if(!b)return;const status=b.dataset.confirm?'confirmed':'cancelled';b.disabled=true;try{await changeStatus(b.dataset.confirm||b.dataset.cancel,status);await loadOrders()}catch(x){alert(x.message);b.disabled=false}};
+document.querySelector('#admin-order-list').onclick=async e=>{const b=e.target.closest('[data-confirm],[data-cancel]');if(!b)return;const status=b.dataset.confirm?'confirmed':'cancelled';b.disabled=true;try{await changeStatus(b.dataset.confirm||b.dataset.cancel,status);await loadOrders()}catch(x){b.disabled=false;const card=b.closest('.order-card');if(card){const note=document.createElement('p');note.className='admin-order-error';note.textContent=x.message;card.append(note)}alert(x.message)}};
 })();
 
