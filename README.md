@@ -1,26 +1,35 @@
-# Almeida Construções — projeto consolidado
+# Almeida Construções
 
-Site mobile-first/PWA para Almeida Construções, Av. Hermes de Almeida, 89, Muriaé/MG. WhatsApp: (32) 2020-1300.
+Catálogo mobile-first com identidade preta e amarela, página individual por produto e suporte a instalação como PWA. A pasta publicada é `dist/`; o projeto usa HTML/CSS/JavaScript estático e Supabase para autenticação, catálogo, pedidos, clientes e carteira.
 
-## O que está funcionando nesta versão
+## Funcionalidades
 
-- Catálogo com **52 produtos** e preços/variações informados no histórico; lista Lincoln mais recente substitui a anterior.
-- Tema escuro padrão, identidade amarela e preta, logo e foto da fachada originais.
-- Busca, subcategorias, página de detalhes por produto, carrinho e escolha PIX, dinheiro ou cartão.
-- Cálculo de 10% de desconto no PIX/dinheiro; cartão a preço normal, até 4x sem juros.
-- Retirada ou entrega (endereço obrigatório para entrega), mensagem formatada ao WhatsApp e aviso de disponibilidade; frete a confirmar.
-- Manifesto e cache PWA básicos. Arquivos estáticos em `dist/` podem ser hospedados com HTTPS.
+- Catálogo conectado ao Supabase. No banco consultado em 1º de outubro de 2026 há 59 produtos ativos e 102 variações ativas.
+- Busca, categorias, promoções, fotos e páginas individuais com descrição, benefícios, aplicação, modo de uso e durabilidade quando informada.
+- Preços por produto e variação: preço cheio/cartão, PIX/dinheiro, promoção e faixas de venda múltipla com preços separados para cartão e PIX/dinheiro.
+- Carrinho com edição de quantidades, seleção de pagamento e entrega/retirada, confirmação de revisão e saldo de cashback.
+- Checkout exige conta autenticada e cria o pedido no banco antes de abrir a conversa do WhatsApp. A loja confirma ou cancela pelo painel; o pagamento em si é combinado fora do site.
+- Conta de cliente com cadastro, dados e endereço, pedidos, favoritos e carteira.
+- Painel administrativo protegido com edição e criação de produtos, variações e fotos, além de áreas separadas de produtos, pedidos e clientes.
+- Cashback de 2% sobre o valor final efetivamente pago, creditado após confirmação. Cashback usado fica reservado em pedido pendente; é debitado na confirmação e liberado no cancelamento. Ao cancelar uma venda confirmada, os lançamentos da carteira são estornados.
+- PWA com nome Almeida Construções, tema escuro e arquivos estáticos prontos para hospedagem HTTPS.
 
-## O que ainda não está funcionando
+## Regras de preço e carteira
 
-O histórico confirmou que o site anterior era um protótipo. Esta versão agora está vinculada ao projeto Supabase Almeida Construções e lê o catálogo público do banco. O banco já contém 52 produtos e 89 variações. Cadastro/login, criação de pedidos, painel administrativo protegido e carteira de cashback ainda serão ligados ao checkout; os botões de conta/pedidos permanecem informativos até essa etapa. A mensagem de WhatsApp ainda não cria reserva de saldo nem confirma uma venda.
+Não há desconto geral automático de 10%. O preço no PIX/dinheiro é informado por variação; promoções usam esse preço como base e o preço no cartão é recalculado proporcionalmente. As faixas de venda múltipla têm preço unitário próprio para cada meio de pagamento. O backend valida e recalcula o total usando os preços atuais do banco.
 
-As imagens individuais e as fichas técnicas verificadas ainda não foram recuperadas; só a logo e a fachada estavam disponíveis como anexos. Por isso a página de produto mostra os dados comerciais informados e não inventa especificações. Os ZIPs mencionados no histórico aparecem apenas como referências de conteúdo e não vieram como arquivos acessíveis nesta sessão.
+O cashback é calculado sobre o valor efetivamente pago depois do preço do meio de pagamento e do cashback resgatado. A operação transacional é idempotente. Cancelamento de um pedido pago fora do site ainda exige que a loja faça separadamente qualquer reembolso no meio de pagamento.
 
-## Próxima etapa de implementação real
+## Estrutura e execução
 
-Implementar as funções transacionais descritas em `docs/BACKEND.md`, trocar o checkout local por criação de pedido validada no servidor e concluir autenticação, administração e cashback. Só então habilitar as áreas de conta e pedidos.
+- `dist/`: arquivos estáticos servidos ao público.
+- `docs/migrations/`: migrações SQL versionadas para as funções e estruturas do Supabase.
+- `docs/BACKEND.md`: regras atuais de autenticação, pedidos e carteira.
+- `docs/AUDITORIA_2026-10-01.md`: escopo, verificações, achados e limitações da auditoria.
+- `tests/`: testes de autenticação, contrato do editor de produtos e uso correto das chaves do Supabase.
 
-## Uso local
+Abra `dist/index.html` por um servidor local para testar. A instalação PWA requer HTTPS ou `localhost`. As configurações de projeto usam apenas a chave publicável do Supabase; nunca coloque uma chave `service_role` no frontend.
 
-Abra `dist/index.html` para ver o catálogo. A instalação PWA requer hospedagem HTTPS (ou localhost), pois navegadores não instalam aplicativos a partir de arquivo local.
+## Segurança e operação
+
+RLS está habilitada nas tabelas expostas. Clientes podem consultar os próprios dados, pedidos e lançamentos; funções administrativas verificam o papel no servidor. O estoque não está sendo controlado: as 102 variações ativas estão sem quantidade informada, e o site deve continuar comunicando disponibilidade sujeita à confirmação da loja até o preenchimento dos estoques. Leia a auditoria antes de iniciar as vendas.
