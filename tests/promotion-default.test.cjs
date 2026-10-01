@@ -45,5 +45,5 @@ test('PWA cache and page reference the same current promotion-filter script', ()
   const version = index.match(/promotion-filter\.js\?v=(\d+)/)?.[1];
   assert.equal(version, '2');
   assert.match(serviceWorker, new RegExp(`promotion-filter\\.js\\?v=${version}(?=['"])`));
-  assert.match(serviceWorker, /almeida-catalogo-v54/);
+  assert.match(serviceWorker, /almeida-catalogo-v55/);
 });
