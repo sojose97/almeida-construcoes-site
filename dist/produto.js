@@ -2,6 +2,21 @@ const money=cents=>(Number(cents||0)/100).toLocaleString('pt-BR',{style:'currenc
 const productId=Number(new URLSearchParams(location.search).get('id'));
 const container=document.querySelector('#product-page-content');
 function escapeHtml(value){const box=document.createElement('div');box.textContent=value??'';return box.innerHTML}
+const OFFICIAL_PRODUCT_VIDEOS=Object.freeze({
+  'nobrecar|viper':{id:'o9LbABOuOuI',channel:'Nobrecar'},
+  'nobrecar|feroz':{id:'pBxAHFD9Cjs',channel:'Nobrecar'},
+  'nobrecar|ceramic coating 7h':{id:'uOKh6Kw0Ldw',channel:'Nobrecar'},
+  'lincoln|hpf':{id:'QmE-A1UQqtc',channel:'Lincoln Polidores'},
+  'adelbras|fita crepe amarela 765':{id:'kHCr8GPsvRI',channel:'Adelbras Fitas Adesivas'},
+  'adelbras|fita crepe verde 766':{id:'kHCr8GPsvRI',channel:'Adelbras Fitas Adesivas'}
+});
+function productVideoKey(value){return String(value??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLocaleLowerCase('pt-BR')}
+function renderOfficialProductVideo(product){
+  const video=OFFICIAL_PRODUCT_VIDEOS[productVideoKey(product.marca)+'|'+productVideoKey(product.nome)];
+  if(!video||!/^[A-Za-z0-9_-]{11}$/.test(video.id))return '';
+  const watchUrl='https://www.youtube.com/watch?v='+video.id;
+  return '<section class="product-video" aria-labelledby="product-video-title"><h2 id="product-video-title">Vídeo oficial do produto</h2><div class="product-video-frame"><iframe src="https://www.youtube-nocookie.com/embed/'+video.id+'?rel=0" title="'+escapeHtml(product.nome+' · canal oficial '+video.channel)+'" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div><p class="product-video-source"><a href="'+watchUrl+'" target="_blank" rel="noopener noreferrer">Assistir no canal oficial '+escapeHtml(video.channel)+' ↗</a></p></section>';
+}
 function productQuantityTiers(variant){
   return (Array.isArray(variant.quantity_prices)?variant.quantity_prices:[]).map(tier=>({min_quantity:Math.floor(Number(tier?.min_quantity)),card_price_cents:Math.round(Number(tier?.card_price_cents??tier?.price_cents)),cash_price_cents:Math.round(Number(tier?.cash_price_cents??tier?.price_cents))})).filter(tier=>tier.min_quantity>=2&&tier.card_price_cents>0&&tier.cash_price_cents>0).sort((a,b)=>a.min_quantity-b.min_quantity);
 }
@@ -22,6 +37,7 @@ function renderProduct(){
   if(!p){container.innerHTML='<section class="missing-product"><h1>Produto não encontrado</h1><p>Volte ao catálogo e escolha um produto.</p><a class="primary-link" href="index.html">Ver catálogo</a></section>';return}
   document.title=p.nome+' · Almeida Construções';
   const detail=productDetail(p);
+  const videoSection=renderOfficialProductVideo(p);
   const durabilityByProduct={
     'Aroma':'A fragrância permanece no ambiente por até 12 horas.',
     'Ceramic Coating 7H':'Proteção e resistência por até 2 anos sobre a pintura.',
@@ -36,7 +52,7 @@ function renderProduct(){
   };
   detail.d=durabilityByProduct[p.nome]||detail.d;
   const image=p.imagem?'<img class="product-image processing" data-clean-image src="'+escapeHtml(p.imagem)+'" alt="'+escapeHtml(p.nome)+'">':'<div class="product-image product-placeholder" aria-hidden="true">'+escapeHtml(p.marca?.[0])+'</div>';
-  container.innerHTML='<article class="product-detail-page"><section class="product-visual">'+image+'</section><section class="product-content"><small>'+escapeHtml(String(p.marca||'').toUpperCase())+' · '+escapeHtml(String(p.grupo||'').toUpperCase())+'</small><h1>'+escapeHtml(p.nome)+'</h1>'+(p.descricao?'<p class="product-description">'+escapeHtml(p.descricao)+'</p>':'')+'<div class="product-information">'+(detail.d?'<section><h2>Durabilidade da aplicação</h2><p>'+escapeHtml(detail.d)+'</p></section>':'')+'<section><h2>Benefícios e funcionalidades</h2><ul>'+detail.b.map(item=>'<li>'+escapeHtml(item)+'</li>').join('')+'</ul></section><section><h2>Onde aplicar</h2><p>'+escapeHtml(detail.a)+'</p></section><section><h2>Como usar</h2><p>'+escapeHtml(detail.u)+'</p></section></div><label class="field">Escolha a variação<select id="product-variant">'+p.variacoes.map((v,index)=>'<option value="'+index+'">'+escapeHtml(v.nome)+' · '+money(v.preco)+'</option>').join('')+'</select></label><label class="field">Quantidade<input id="product-quantity" type="number" min="1" step="1" value="1" inputmode="numeric"></label><p id="product-bulk-notice" class="bulk-selection-notice" hidden></p><div id="product-price" class="product-price"></div><button id="product-add" class="primary">Adicionar ao carrinho</button><p class="product-policy"></p>'+(p.fonte?'<a class="source-link" href="'+escapeHtml(p.fonte)+'" target="_blank" rel="noopener">Informações do fabricante ↗</a>':'')+'</section></article>';
+  container.innerHTML='<article class="product-detail-page"><section class="product-visual">'+image+'</section><section class="product-content"><small>'+escapeHtml(String(p.marca||'').toUpperCase())+' · '+escapeHtml(String(p.grupo||'').toUpperCase())+'</small><h1>'+escapeHtml(p.nome)+'</h1>'+(p.descricao?'<p class="product-description">'+escapeHtml(p.descricao)+'</p>':'')+'<div class="product-information">'+(detail.d?'<section><h2>Durabilidade da aplicação</h2><p>'+escapeHtml(detail.d)+'</p></section>':'')+'<section><h2>Benefícios e funcionalidades</h2><ul>'+detail.b.map(item=>'<li>'+escapeHtml(item)+'</li>').join('')+'</ul></section><section><h2>Onde aplicar</h2><p>'+escapeHtml(detail.a)+'</p></section><section><h2>Como usar</h2><p>'+escapeHtml(detail.u)+'</p></section></div><label class="field">Escolha a variação<select id="product-variant">'+p.variacoes.map((v,index)=>'<option value="'+index+'">'+escapeHtml(v.nome)+' · '+money(v.preco)+'</option>').join('')+'</select></label><label class="field">Quantidade<input id="product-quantity" type="number" min="1" step="1" value="1" inputmode="numeric"></label><p id="product-bulk-notice" class="bulk-selection-notice" hidden></p><div id="product-price" class="product-price"></div><button id="product-add" class="primary">Adicionar ao carrinho</button>'+videoSection+'<p class="product-policy"></p>'+(p.fonte?'<a class="source-link" href="'+escapeHtml(p.fonte)+'" target="_blank" rel="noopener">Informações do fabricante ↗</a>':'')+'</section></article>';
   const update=()=>{
     const quantityInput=document.querySelector('#product-quantity'),quantity=Math.max(1,Math.floor(Number(quantityInput?.value)||1));
     if(quantityInput)quantityInput.value=quantity;
