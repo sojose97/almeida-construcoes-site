@@ -15,3 +15,7 @@ test('account and order buttons do not show the old backend-disabled placeholder
   assert.doesNotMatch(site, /Cadastro, pedidos e cashback precisam do backend Supabase/);
   assert.doesNotMatch(site, /info\('Minha conta'\)|info\('Meus pedidos'\)/);
 });
+
+test('empty cart cleanup does not try to render a removed delivery-address field', () => {
+  assert.match(site, /function address\(\)\{const fields=\$\('#address-fields'\);if\(!fields\)return;/);
+});
