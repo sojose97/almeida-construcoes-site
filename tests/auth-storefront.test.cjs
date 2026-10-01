@@ -10,15 +10,18 @@ function setup({hash='',search='',response={}}={}){
   node('#customer-email').value='test@example.com';node('#customer-password').value='test-password';
   const location={hash,search,pathname:'/',origin:'https://almeida-construcoes.pages.dev'};
   const context={URLSearchParams,Date,JSON,Number,Math,Error,Object,console,location,
+    window:{crypto:{randomUUID:()=>`test-request-${requests.length}`},open:()=>null,location},
     ALMEIDA_SUPABASE_URL:'https://test.supabase.co',ALMEIDA_SUPABASE_KEY:'test-public',
     localStorage:{getItem:k=>storage.get(k),setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},
+    sessionStorage:{getItem:k=>storage.get(`session:${k}`),setItem:(k,v)=>storage.set(`session:${k}`,v),removeItem:k=>storage.delete(`session:${k}`)},
     history:{replaceState(a,b,url){location.hash='';location.search=url.includes('?')?'?'+url.split('?')[1]:''}},
-    document:{title:'Test',querySelector:id=>nodes.get(id)||null,querySelectorAll:()=>[],createElement:()=>node('#auth-notice'),body:{prepend(){},insertAdjacentHTML(){}}},
+    document:{title:'Test',querySelector:id=>nodes.get(id)||null,querySelectorAll:()=>[],addEventListener(){},createElement:()=>node('#auth-notice'),body:{prepend(){},insertAdjacentHTML(){}}},
     setTimeout(){},money:()=>'',
     fetch:async(url,options={})=>{requests.push({url,options});const result=typeof response==='function'?response(url,options):response;return{ok:result.ok!==false,status:result.status||200,text:async()=>JSON.stringify(result.body||{}),json:async()=>result.body||{}}}
   };
+  context.window.window=context.window;
   // Expose the real functions only inside the test VM, without changing production exports.
-  vm.runInNewContext(source.replace(/\}\)\(\);\s*$/,'globalThis.testAuth={auth,account,authReady};})();'),context);
+  vm.runInNewContext(source.replace(/\}\)\(\);\s*$/,'globalThis.testAuth={auth,account,api,authReady,setSession:value=>{session=value}};})();'),context);
   return{context,node,nodes,storage,requests,ready:context.testAuth.authReady};
 }
 const tokens={access_token:'fixture-access',refresh_token:'fixture-refresh',expires_in:3600,user:{id:'fixture-user',email_confirmed_at:'2026-09-18T01:00:00Z'}};
@@ -26,6 +29,14 @@ test('REST password success saves top-level tokens instead of showing false conf
  const h=setup({response:{body:tokens}});await h.ready;await h.context.testAuth.auth({preventDefault(){}},false);
  assert.equal(JSON.parse(h.storage.get('almeida-customer-session')).access_token,tokens.access_token);
  assert.equal(h.node('#account').textContent,'Minha conta ✓');assert.equal(h.node('#account-dialog').closed,true);
+});
+test('publishable key is never sent as a Bearer JWT before a customer session exists',async()=>{
+ const h=setup();await h.ready;await h.context.testAuth.api('/rest/v1/products');
+ const request=h.requests[0];assert.equal(request.options.headers.apikey,'test-public');assert.equal(request.options.headers.Authorization,undefined);
+});
+test('authenticated REST calls use the customer access token as Bearer',async()=>{
+ const h=setup();await h.ready;h.context.testAuth.setSession({access_token:'customer-jwt'});await h.context.testAuth.api('/rest/v1/profiles');
+ assert.equal(h.requests[0].options.headers.apikey,'test-public');assert.equal(h.requests[0].options.headers.Authorization,'Bearer customer-jwt');
 });
 test('backend email_not_confirmed error does not create a session',async()=>{
  const h=setup({response:{ok:false,status:400,body:{error_code:'email_not_confirmed',msg:'Email not confirmed'}}});await h.ready;

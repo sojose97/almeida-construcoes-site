@@ -1,7 +1,7 @@
 (function(){
-const key='almeida-customer-session';let session=null;
+const key='almeida-customer-session';const checkoutRequestKey='almeida-checkout-request-id';let session=null,checkoutInProgress=false;
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const api=(path,opt={})=>fetch(ALMEIDA_SUPABASE_URL+path,{...opt,headers:{apikey:ALMEIDA_SUPABASE_KEY,Authorization:'Bearer '+(session?.access_token||ALMEIDA_SUPABASE_KEY),'Content-Type':'application/json',...(opt.headers||{})}}).then(async r=>{const t=await r.text();let d=t?JSON.parse(t):null;if(!r.ok)throw Error(d?.message||d?.error_description||'Não foi possível concluir.');return d});
+const api=(path,opt={})=>fetch(ALMEIDA_SUPABASE_URL+path,{...opt,headers:{apikey:ALMEIDA_SUPABASE_KEY,...(session?.access_token?{Authorization:'Bearer '+session.access_token}:{}),'Content-Type':'application/json',...(opt.headers||{})}}).then(async r=>{const t=await r.text();let d=t?JSON.parse(t):null;if(!r.ok)throw Error(d?.message||d?.error_description||'Não foi possível concluir.');return d});
 const confirmationRedirect='https://almeida-construcoes.pages.dev/';
 function authError(data,status){
 const code=data?.error_code||data?.code;
@@ -75,23 +75,51 @@ async function getCustomerDetails(){
     const user=await api('/auth/v1/user');
     const rows=await api('/rest/v1/profiles?select=full_name,phone,default_address&id=eq.'+encodeURIComponent(user.id));
     const profile=rows?.[0]||{};
-    return {name:profile.full_name||user.user_metadata?.full_name||user.email||'',phone:profile.phone||'',address:formatCustomerAddress(profile.default_address)};
+    return {userId:user.id,name:profile.full_name||user.user_metadata?.full_name||user.email||'',phone:profile.phone||'',address:formatCustomerAddress(profile.default_address)};
   }catch{
-    return {name:fallback.user_metadata?.full_name||fallback.email||'',phone:'',address:{line:'',reference:''}};
+    return {userId:fallback.id||session?.user?.id,name:fallback.user_metadata?.full_name||fallback.email||'',phone:'',address:{line:'',reference:''}};
   }
-}async function sendOrder(){
+}
+function resetCheckoutRequestId(){sessionStorage.removeItem(checkoutRequestKey)}
+function currentCheckoutRequestId(userId){
+  let saved=null;try{saved=JSON.parse(sessionStorage.getItem(checkoutRequestKey)||'null')}catch{}
+  if(saved?.id&&saved.userId===userId)return saved.id;
+  const id=window.crypto.randomUUID();
+  sessionStorage.setItem(checkoutRequestKey,JSON.stringify({id,userId}));
+  return id;
+}
+window.resetCheckoutRequestId=resetCheckoutRequestId;
+function checkoutFeedback(message,error=false){
+  const checkout=$('#checkout');if(!checkout)return;
+  let notice=$('#order-feedback');if(!notice){notice=document.createElement('p');notice.id='order-feedback';notice.className='notice';notice.setAttribute('role','status');checkout.append(notice)}
+  notice.textContent=message;notice.classList.toggle('error',error);
+}
+document.addEventListener('input',event=>{if(['payment','fulfillment','address','cashback-use'].includes(event.target?.id))resetCheckoutRequestId()});
+document.addEventListener('change',event=>{if(['payment','fulfillment','address','cashback-use'].includes(event.target?.id))resetCheckoutRequestId()});
+async function sendOrder(){
+  if(checkoutInProgress)return;
   if(!$('#confirm-cart-items')?.checked){$('#confirm-cart-items')?.focus();return}
   if(!session){account();return}
+  checkoutInProgress=true;
+  const sendButton=$('#send');if(sendButton){sendButton.disabled=true;sendButton.textContent='Registrando pedido...'}
+  let whatsappWindow=null;
+  try{
   const payment=$('#payment').value==='cartao'?'card':$('#payment').value==='dinheiro'?'cash':'pix',fulfillment=$('#fulfillment').value==='entrega'?'delivery':'pickup',addr=$('#address')?.value.trim(),requested=Math.max(0,Math.round(Number($('#cashback-use')?.value||0)*100));
-  if(fulfillment==='delivery'&&!addr){$('#address').focus();return}
+  if(fulfillment==='delivery'&&!addr){$('#address').focus();checkoutFeedback('Preencha o endereço para entrega.',true);if(sendButton){sendButton.disabled=false;sendButton.textContent='Finalizar pedido'}return}
   const items=cart.map(i=>({variant_id:produtos[i.id].variacoes[i.vi].id,quantity:i.qty}));
-  if(items.some(i=>!i.variant_id)){alert('Atualize o catálogo antes de finalizar o pedido.');return}
+  if(!items.length||items.some(i=>!i.variant_id)){checkoutFeedback('Atualize o catálogo antes de finalizar o pedido.',true);if(sendButton){sendButton.disabled=false;sendButton.textContent='Finalizar pedido'}return}
+  whatsappWindow=window.open('about:blank','_blank');
   const customer=await getCustomerDetails();
-  const result=await api('/rest/v1/rpc/place_order',{method:'POST',body:JSON.stringify({p_items:items,p_payment_method:payment,p_fulfillment_method:fulfillment,p_delivery_address:addr?{text:addr}:null,p_cashback_requested_cents:requested})});
+  const requestId=currentCheckoutRequestId(customer.userId);
+  const result=await api('/rest/v1/rpc/place_order',{method:'POST',body:JSON.stringify({p_items:items,p_payment_method:payment,p_fulfillment_method:fulfillment,p_delivery_address:addr?{text:addr}:null,p_cashback_requested_cents:requested,p_checkout_request_id:requestId})});
   const lines=cart.map(i=>{const p=produtos[i.id],v=p.variacoes[i.vi];return `${i.qty}× ${p.nome} — ${v.nome}`});
   const customerAddress=customer.address?.line||'';const customerReference=customer.address?.reference||'';const customerDetails=[`Cliente: ${firstTwoNames(customer.name)||'Não informado'}`,customer.phone?`Telefone: ${customer.phone}`:'',`Endereço: ${addr||customerAddress||'Não informado'}`,customerReference?`Referência: ${customerReference}`:''].filter(Boolean).join('\n')
   const msg=`Olá! Pedido #${result.public_number} da Almeida Construções.\n\n${customerDetails}\n\nItens:\n${lines.join('\n')}\n\nTotal: ${money(result.amount_due_cents)}\nPagamento: ${payment==='pix'?'PIX':payment==='cash'?'Dinheiro':'Cartão'}\nPedido registrado no site e aguardando confirmação.`;
-  window.open('https://wa.me/553220201300?text='+encodeURIComponent(msg),'_blank','noopener');cart=[];saveCart();$('#cart-dialog').close();alert('Pedido registrado! Você pode acompanhar em Meus pedidos.');
+  const whatsappUrl='https://wa.me/553220201300?text='+encodeURIComponent(msg);
+  if(whatsappWindow){whatsappWindow.opener=null;whatsappWindow.location.href=whatsappUrl}else{window.location.href=whatsappUrl}
+  cart=[];saveCart();resetCheckoutRequestId();$('#cart-dialog').close();alert('Pedido registrado! Você pode acompanhar em Meus pedidos.');
+  }catch(error){if(whatsappWindow)whatsappWindow.close();checkoutFeedback(error.message||'Não foi possível registrar o pedido. Tente novamente.',true);if(sendButton){sendButton.textContent='Finalizar pedido';sendButton.disabled=!$('#confirm-cart-items')?.checked}}
+  finally{checkoutInProgress=false}
 }
 globalThis.almeidaSendOrder=sendOrder;const authReady=load();if(document.querySelector('#account')){dialog();document.querySelector('#account').onclick=async()=>{await authReady;account()};if(document.querySelector('#orders'))document.querySelector('#orders').onclick=async()=>{await authReady;orders()};updateNav();}if(typeof send==='function')send=()=>sendOrder();
 })();

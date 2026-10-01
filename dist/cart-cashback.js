@@ -4,7 +4,7 @@
   const getSession=()=>{try{return JSON.parse(localStorage.getItem(sessionKey)||'null')}catch{return null}};
   const availableBalance=entries=>entries.reduce((total,entry)=>{
     const cents=Math.max(0,Number(entry.amount_cents)||0);
-    if(entry.entry_type==='credit'||entry.entry_type==='release')return total+cents;
+    if(entry.entry_type==='credit'||entry.entry_type==='release'||entry.entry_type==='cashback_refund')return total+cents;
     if(entry.entry_type==='debit'||entry.entry_type==='reserve'||entry.entry_type==='reversal')return total-cents;
     return total;
   },0);
@@ -29,6 +29,8 @@
     }
     notice.textContent='Consultando saldo de cashback...';
     input.disabled=true;
+    const checkoutNotice=document.querySelector('#checkout .notice');
+    if(checkoutNotice)checkoutNotice.textContent=getSession()?.access_token?'Seu pedido será registrado na sua conta e ficará aguardando a confirmação da loja.':'Entre na sua conta para registrar o pedido, reservar cashback e acompanhar a confirmação.';
     try{
       const balance=await loadBalance();
       notice.innerHTML='Saldo de cashback disponível: <strong>'+money(balance)+'</strong>';

@@ -1,21 +1,29 @@
-# Implementação do backend e cashback
+# Backend Supabase: estado e regras operacionais
 
-## Estado atual e fonte
+## Estado conectado
 
-O histórico original está no ChatGPT, tarefa `6aa9c43b-6ef8-83e9-8988-8c5b1f863100` (Criar catálogo via WhatsApp). O catálogo está transcrito em `dist/catalogo.js`. Foram recuperados logo e fachada; arquivos ZIP e imagens individuais referenciados no histórico não estavam disponíveis como anexos.
+O site usa o projeto Supabase Almeida Construções. O catálogo público lê produtos e variações ativas do banco; autenticação, perfis, pedidos, itens e carteira também ficam no banco. Todas as tabelas expostas têm RLS. O navegador usa a chave publicável e tokens de sessão; uma chave `service_role` nunca deve ser embutida no site.
 
-## Modelo a implementar no Supabase
+Tabelas principais: `products`, `product_variants`, `profiles`, `orders`, `order_items` e `wallet_entries`. `private.admin_email_allowlist` é uma tabela interna sem policy de cliente; a role administrativa persistida em `profiles.role` só pode ser atribuída de forma controlada.
 
-`products`: id, marca, nome, subcategoria, descrição/fonte técnica, ativo. `variants`: id, product_id, nome, preço_centavos, estoque. `profiles`: user_id, nome, telefone, endereço. `orders`: id, user_id, status (pendente, confirmada, cancelada), pagamento, recebimento, endereço, subtotal_centavos, desconto_centavos, cashback_reservado_centavos, valor_a_pagar_centavos, valor_final_confirmado_centavos, data. `order_items`: order_id, variant_id, nome/preço/quantidade congelados no momento do pedido. `wallet_entries`: user_id, order_id, tipo (crédito, débito, reserva, liberação), centavos, data. `admins`: user_id, papel. O saldo disponível deve ser calculado dos lançamentos, com reservas subtraídas.
+## Preço validado no servidor
 
-Ative RLS em todas as tabelas expostas. Clientes só leem seu perfil, pedidos e extrato. O papel administrativo deve residir em tabela protegida ou `app_metadata` controlado pelo servidor, nunca em `user_metadata`. O navegador usa chave publicável; jamais `service_role`.
+O cliente envia IDs de variação, quantidade, meio de pagamento, recebimento, endereço e cashback solicitado. `place_order` lê preços e promoções do banco, normaliza IDs repetidos, valida produto/quantidade/estoque informado, serializa reservas por cliente e congela preço e nome em `order_items`. A chave de checkout evita duplicar um pedido se o navegador repetir a mesma solicitação.
 
-## Fluxo transacional obrigatório
+Preços regulares de cartão e PIX/dinheiro são separados por variação. A promoção incide sobre o valor à vista e produz o preço proporcional no cartão. Uma faixa de venda múltipla substitui ambos os preços unitários quando a quantidade mínima é atingida. Não existe desconto geral de 10%.
 
-1. `create_order` exige sessão autenticada, recebe IDs de variações/quantidades, forma de pagamento, recebimento e valor de cashback desejado. Dentro da transação, busca preços atuais e bloqueia a carteira do usuário para evitar reserva simultânea. Calcula subtotal; desconto = arredondamento do subtotal × 10% só para PIX/dinheiro; máximo resgatável = menor entre saldo disponível e subtotal após desconto. Reserva o valor usado, grava itens e pedido pendente. Retorna o número e os totais oficiais para montar a mensagem WhatsApp.
-2. `confirm_order` só pode ser chamado por administrador autorizado. Confirma o valor final efetivamente pago, compatível com os itens e eventuais ajustes realizados na venda. Debita a reserva uma vez, grava a confirmação e credita arredondamento de **1% do valor final efetivamente pago** uma vez. Repetição da operação deve ser idempotente.
-3. `cancel_order` só pode ser chamado por administrador autorizado (ou cliente, se a regra de cancelamento permitir). Libera a reserva uma vez, sem gerar crédito. Operações concorrentes de confirmar/cancelar devem bloquear a linha do pedido e não executar dois resultados.
+## Fluxo de pedido e cashback
 
-Exemplo: R$ 200,00 no PIX → desconto R$ 20,00 → usa R$ 30,00 de cashback → paga R$ 150,00 → após confirmação recebe R$ 1,50. No cartão, R$ 200,00 com R$ 50,00 de cashback → paga R$ 150,00 → recebe R$ 1,50. Se o pedido for cancelado, a reserva volta ao saldo disponível.
+1. Checkout só prossegue com uma sessão autenticada. A função valida o carrinho e cria pedido `pending`; o navegador abre a conversa de WhatsApp depois da resposta do banco. O WhatsApp não processa pagamento.
+2. O cashback pedido é reservado enquanto o pedido fica pendente. Se cancelado nesse estado, a reserva é liberada.
+3. `admin_set_order_status` e seu endpoint compatível `admin_set_order_status_v2` exigem `profiles.role = 'admin'` dentro do banco. A confirmação grava o valor pago, encerra a reserva, debita o cashback utilizado e credita 2% do valor restante efetivamente pago, uma vez.
+4. Se uma venda confirmada for cancelada, o cashback usado é devolvido e o cashback ganho é estornado. Reembolso de pagamento por PIX/dinheiro/cartão é uma ação externa da loja.
 
-Antes de habilitar o frontend conectado, testar criação concorrente com saldo limitado, alteração de preço no cliente, confirmação repetida, cancelamento repetido, confirmação versus cancelamento simultâneos e acesso indevido a pedidos/carteiras de outros usuários.
+As funções privilegiadas usam `SECURITY DEFINER`, `search_path = ''`, nomes de schema explícitos, e verificam autenticação/papel antes de alterar dados. Isso é necessário para executar a transação sobre tabelas com RLS; as funções não são concedidas ao papel `anon`.
+
+## Migrações
+
+- `20260930_quantity_prices.sql`: colunas/faixas de preços unitários por quantidade.
+- `20261001_checkout_security_idempotency_cashback.sql`: idempotência do checkout, reserva/cancelamento corretos do cashback e retirada de leitura anônima de dados pessoais.
+
+Ambas refletem alterações aplicadas ao banco em produção. Execute uma migração antes de publicar frontend que dependa das novas colunas ou assinaturas RPC.
