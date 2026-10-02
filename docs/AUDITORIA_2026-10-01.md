@@ -59,3 +59,13 @@ Os testes com dados de pedido e produto ocorreram dentro de transações termina
 ## Próximo passo operacional
 
 Antes de receber clientes, publique esta versão integrada na Cloudflare e repita no endereço público o teste de detalhe do produto, venda múltipla, carrinho e checkout autenticado. A API Supabase e o preview local já passaram na leitura do catálogo; a versão pública segue pendente da atualização do código. O endereço do Sites com final `chatgpt.site` não substitui a publicação pública porque está restrito ao proprietário. Depois, cadastre estoque real e avalie o alerta de proteção de senhas conforme o plano Supabase.
+
+## Auditoria funcional complementar
+
+Em 1º de outubro, a versão pública foi percorrida novamente. Os 59 produtos abriram com foto, variação, quantidade, preço e botão de compra; as 15 categorias retornaram produtos; a aba Promoção iniciou selecionada; e o carrinho foi testado com alteração de quantidade, PIX, dinheiro, cartão, retirada, entrega, cashback zerado e bloqueio de checkout sem sessão. A tentativa sem login abriu o acesso da conta e não criou pedido nem abriu um pedido direto no WhatsApp. As 59 páginas individuais foram verificadas sem página de produto ausente.
+
+Foram encontradas e corrigidas localmente três inconsistências de apresentação: o título do catálogo não acompanhava a aba Promoção; a política da página de um item promocional não reconhecia o campo calculado de promoção; e o painel administrativo mostrava estados, pagamento e recebimento em identificadores internos em inglês. O cache do PWA foi renovado para incluir os arquivos corrigidos. Os 31 testes funcionais/contratuais locais e a checagem de sintaxe JavaScript passaram após as correções.
+
+A revisão de segurança confirmou RLS ativa, leitura anônima somente do catálogo ativo, ausência de leitura anônima de perfis, pedidos e carteira, ausência de execução anônima das RPCs transacionais e `search_path` vazio nas funções `SECURITY DEFINER`. Permanecem os avisos já documentados: proteção contra senhas vazadas indisponível no plano atual, funções transacionais `SECURITY DEFINER` intencionalmente executáveis por usuários autenticados e estoque ainda sem quantidades cadastradas.
+
+O envio dos commits desta rodada ao GitHub/Cloudflare ficou pendente porque o ambiente bloqueou a conexão HTTPS e a revisão automática recusou a tentativa escalada por limite de uso. Portanto, as correções estão prontas e testadas na pasta local; o endereço público continua aguardando a publicação pelo fluxo autorizado.
