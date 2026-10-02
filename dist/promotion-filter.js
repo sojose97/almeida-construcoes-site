@@ -2,6 +2,8 @@
 if(!document.querySelector('#grid'))return;
 const renderWithPromotion=()=>{
   const groups=['Promoção','Todos',...new Set(produtos.map(p=>p.grupo).filter(Boolean))];
+  const heading=document.querySelector('#catalog-heading');
+  if(heading)heading.textContent=group==='Promoção'?'Promoções':group==='Todos'?'Todos os produtos':group;
   $('#filters').innerHTML=groups.map(g=>`<button class="${g===group?'active ':''}${g==='Promoção'?'promotion-tab':''}" data-group="${esc(g)}">${esc(g.toUpperCase())}</button>`).join('');
   const isPromo=p=>(p.variacoes||[]).some(v=>{const d=priceData(v);return d.promo>0&&d.promo<d.cash});
   const list=produtos.filter(p=>(group==='Todos'||(group==='Promoção'?isPromo(p):p.grupo===group))&&`${p.nome} ${p.marca}`.toLocaleLowerCase('pt-BR').includes(query));
