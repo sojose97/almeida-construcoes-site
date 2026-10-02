@@ -6,6 +6,7 @@ const OFFICIAL_PRODUCT_VIDEOS=Object.freeze({
   'nobrecar|viper':{id:'o9LbABOuOuI',channel:'Nobrecar'},
   'nobrecar|feroz':{id:'pBxAHFD9Cjs',channel:'Nobrecar'},
   'nobrecar|ceramic coating 7h':{id:'uOKh6Kw0Ldw',channel:'Nobrecar'},
+  'nobrecar|creamyx wax':{id:'cuPUgavf3TQ',channel:'Nobrecar'},
   'nobrecar|apc orange':{id:'6X44X21HhfY',channel:'Nobrecar'},
   'nobrecar|aroma':{id:'BI36RCoK1WI',channel:'Nobrecar'},
   'nobrecar|boina de espuma branca refino':{id:'_S71zFV6mjA',channel:'Nobrecar'},
