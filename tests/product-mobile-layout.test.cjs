@@ -18,7 +18,7 @@ test('product page requests the new stylesheet and the PWA cache includes it', (
   assert.match(productPage, /produto\.js\?v=31/);
   assert.match(serviceWorker, /style\.css\?v=31/);
   assert.match(serviceWorker, /produto\.js\?v=31/);
-  assert.match(serviceWorker, /almeida-catalogo-v59/);
+  assert.match(serviceWorker, /almeida-catalogo-v60/);
 });
 
 test('product details omit the generic intro but preserve descriptions entered for a product', () => {

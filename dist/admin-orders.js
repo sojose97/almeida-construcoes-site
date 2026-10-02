@@ -6,6 +6,9 @@
       return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c];
     });
   };
+  var statusLabel = function (value) { return ({ pending: 'Aguardando confirmação', confirmed: 'Venda confirmada', cancelled: 'Pedido cancelado' })[value] || 'Status não informado'; };
+  var paymentLabel = function (value) { return ({ pix: 'PIX', cash: 'Dinheiro', card: 'Cartão' })[value] || 'Pagamento não informado'; };
+  var fulfillmentLabel = function (value) { return ({ pickup: 'Retirada na loja', delivery: 'Entrega' })[value] || 'Recebimento não informado'; };
   area.insertAdjacentHTML('beforeend', '<section id="admin-orders" class="admin-orders" hidden><h2>Pedidos recebidos</h2><div id="admin-order-list"></div></section>');
   function orderHtml(order) {
     var items = (order.order_items || []).map(function (item) {
@@ -17,7 +20,7 @@
     } else if (order.status === 'confirmed') {
       actions = '<div class="admin-order-actions single"><button class="secondary" data-cancel="' + esc(order.id) + '">Cancelar venda confirmada</button></div>';
     }
-    return '<article class="order-card"><strong>Pedido #' + esc(order.public_number) + '</strong><span>' + esc(order.status) + '</span><small>' + esc(new Date(order.created_at).toLocaleString('pt-BR')) + ' · ' + esc(order.payment_method) + ' · ' + esc(order.fulfillment_method) + '</small><p>' + items + '</p><b>Total: ' + money(order.amount_due_cents) + '</b>' + actions + '</article>';
+    return '<article class="order-card"><strong>Pedido #' + esc(order.public_number) + '</strong><span>' + esc(statusLabel(order.status)) + '</span><small>' + esc(new Date(order.created_at).toLocaleString('pt-BR')) + ' · ' + esc(paymentLabel(order.payment_method)) + ' · ' + esc(fulfillmentLabel(order.fulfillment_method)) + '</small><p>' + items + '</p><b>Total: ' + money(order.amount_due_cents) + '</b>' + actions + '</article>';
   }
   async function loadOrders() {
     var list = document.querySelector('#admin-order-list');
