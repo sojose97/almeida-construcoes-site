@@ -12,6 +12,7 @@ test('only verified official brand videos are mapped to matching products', () =
     "'nobrecar|viper':{id:'o9LbABOuOuI',channel:'Nobrecar'}",
     "'nobrecar|feroz':{id:'pBxAHFD9Cjs',channel:'Nobrecar'}",
     "'nobrecar|ceramic coating 7h':{id:'uOKh6Kw0Ldw',channel:'Nobrecar'}",
+    "'nobrecar|creamyx wax':{id:'cuPUgavf3TQ',channel:'Nobrecar'}",
     "'nobrecar|apc orange':{id:'6X44X21HhfY',channel:'Nobrecar'}",
     "'nobrecar|aroma':{id:'BI36RCoK1WI',channel:'Nobrecar'}",
     "'nobrecar|boina de espuma branca refino':{id:'_S71zFV6mjA',channel:'Nobrecar'}",
@@ -58,7 +59,8 @@ test('only verified official brand videos are mapped to matching products', () =
     "'lincoln|boina espuma corte laranja':{id:'tc3kWx8HWGA',channel:'Lincoln Polidores'}"
   ];
   for (const entry of expected) assert.ok(productScript.includes(entry), entry);
-  assert.equal(expected.length, 47);
+  assert.equal(expected.length, 48);
+  assert.doesNotMatch(productScript, /'nobrecar\\|plp':/);
   assert.doesNotMatch(productScript, /Artwax|By Deni|youtube.com\/embed/);
 });
 
@@ -84,9 +86,9 @@ test('video follows add-to-cart and precedes product information at every viewpo
 
 test('product HTML and service-worker cache use matching updated asset versions', () => {
   assert.ok(productPage.includes('style.css?v=31'));
-  assert.ok(productPage.includes('produto.js?v=30'));
-  assert.ok(serviceWorker.includes("const CACHE='almeida-catalogo-v57'"));
+  assert.ok(productPage.includes('produto.js?v=31'));
+  assert.ok(serviceWorker.includes("const CACHE='almeida-catalogo-v58'"));
   assert.ok(serviceWorker.includes("'style.css?v=31'"));
-  assert.ok(serviceWorker.includes("'produto.js?v=30'"));
+  assert.ok(serviceWorker.includes("'produto.js?v=31'"));
 });
 
