@@ -7,6 +7,10 @@ const productPage = fs.readFileSync('dist/produto.html', 'utf8');
 const productScript = fs.readFileSync('dist/produto.js', 'utf8');
 const serviceWorker = fs.readFileSync('dist/sw.js', 'utf8');
 
+test('all product photos use the same solid white image panel', () => {
+  assert.match(css, /img\.card-image,img\.product-image\{background:#fff\}/);
+});
+
 test('product page keeps the product image left and its details right on mobile', () => {
   assert.match(css, /@media\(max-width:760px\)\{\.product-page\{padding-inline:10px\}\.product-detail-page\{grid-template-columns:minmax\(0,\.78fr\) minmax\(0,1\.22fr\);gap:10px/);
   assert.match(css, /\.product-image\{max-height:none;padding:7px/);
@@ -14,11 +18,11 @@ test('product page keeps the product image left and its details right on mobile'
 });
 
 test('product page requests the new stylesheet and the PWA cache includes it', () => {
-  assert.match(productPage, /style\.css\?v=32/);
+  assert.match(productPage, /style\.css\?v=33/);
   assert.match(productPage, /produto\.js\?v=31/);
-  assert.match(serviceWorker, /style\.css\?v=32/);
+  assert.match(serviceWorker, /style\.css\?v=33/);
   assert.match(serviceWorker, /produto\.js\?v=31/);
-  assert.match(serviceWorker, /almeida-catalogo-v62/);
+  assert.match(serviceWorker, /almeida-catalogo-v63/);
 });
 
 test('product details omit the generic intro but preserve descriptions entered for a product', () => {
