@@ -19,10 +19,10 @@ test('product page keeps the product image left and its details right on mobile'
 
 test('product page requests the new stylesheet and the PWA cache includes it', () => {
   assert.match(productPage, /style\.css\?v=33/);
-  assert.match(productPage, /produto\.js\?v=31/);
+  assert.match(productPage, /produto\.js\?v=32/);
   assert.match(serviceWorker, /style\.css\?v=33/);
-  assert.match(serviceWorker, /produto\.js\?v=31/);
-  assert.match(serviceWorker, /almeida-catalogo-v63/);
+  assert.match(serviceWorker, /produto\.js\?v=32/);
+  assert.match(serviceWorker, /almeida-catalogo-v64/);
 });
 
 test('product details omit the generic intro but preserve descriptions entered for a product', () => {

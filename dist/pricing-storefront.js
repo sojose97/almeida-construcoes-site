@@ -57,10 +57,10 @@ function normalizedVariant(variant) {
 if (document.querySelector('#grid')) {
   loadCatalogFromSupabase = async function () {
     try {
-      const response = await fetch(ALMEIDA_SUPABASE_URL + '/rest/v1/products?active=eq.true&select=brand,name,subcategory,image_url,image_override_url,product_variants(id,name,price_cents,cash_price_cents,promo_price_cents,quantity_prices,active)&order=name.asc', { headers: { apikey: ALMEIDA_SUPABASE_KEY } });
+      const response = await fetch(ALMEIDA_SUPABASE_URL + '/rest/v1/products?active=eq.true&select=id,brand,name,subcategory,image_url,image_override_url,product_variants(id,name,price_cents,cash_price_cents,promo_price_cents,quantity_prices,active)&order=name.asc', { headers: { apikey: ALMEIDA_SUPABASE_KEY } });
       if (!response.ok) throw new Error('Catalog status ' + response.status);
       const remote = await response.json();
-      const normalized = remote.map((product, id) => ({ id, marca: product.brand, nome: product.name, grupo: product.subcategory, imagem: product.image_override_url || localProductImage(product.brand, product.name, product.image_url), variacoes: (product.product_variants || []).filter(variant => variant.active).map(normalizedVariant) })).filter(product => product.variacoes.length);
+      const normalized = remote.map((product, id) => ({ id, databaseId: product.id, marca: product.brand, nome: product.name, grupo: product.subcategory, imagem: product.image_override_url || localProductImage(product.brand, product.name, product.image_url), variacoes: (product.product_variants || []).filter(variant => variant.active).map(normalizedVariant) })).filter(product => product.variacoes.length);
       if (normalized.length) { produtos = normalized; render(); }
     } catch (error) { console.info('Catálogo local usado enquanto o banco não está disponível.', error); }
   };
@@ -96,11 +96,17 @@ if (document.querySelector('#grid')) {
 if (document.querySelector('#product-page-content')) {
   loadProductFromSupabase = async function () {
     try {
-      const response = await fetch(ALMEIDA_SUPABASE_URL + '/rest/v1/products?active=eq.true&select=brand,name,subcategory,description,image_url,image_override_url,source_url,product_variants(id,name,price_cents,cash_price_cents,promo_price_cents,quantity_prices,active)&order=name.asc', { headers: { apikey: ALMEIDA_SUPABASE_KEY } });
+      const response = await fetch(ALMEIDA_SUPABASE_URL + '/rest/v1/products?active=eq.true&select=id,brand,name,subcategory,description,image_url,image_override_url,source_url,product_variants(id,name,price_cents,cash_price_cents,promo_price_cents,quantity_prices,active)&order=name.asc', { headers: { apikey: ALMEIDA_SUPABASE_KEY } });
       if (!response.ok) throw new Error('Catalog status ' + response.status);
       const remote = await response.json();
-      const normalized = remote.map((product, id) => ({ id, marca: product.brand, nome: product.name, grupo: product.subcategory, descricao: product.description, imagem: product.image_override_url || localProductImage(product.brand, product.name, product.image_url), fonte: product.source_url, variacoes: (product.product_variants || []).filter(variant => variant.active).map(normalizedVariant) })).filter(product => product.variacoes.length);
-      if (normalized.length) { produtos = normalized; renderProduct(); }
+      const normalized = remote.map((product, id) => ({ id, databaseId: product.id, marca: product.brand, nome: product.name, grupo: product.subcategory, descricao: product.description, imagem: product.image_override_url || localProductImage(product.brand, product.name, product.image_url), fonte: product.source_url, variacoes: (product.product_variants || []).filter(variant => variant.active).map(normalizedVariant) })).filter(product => product.variacoes.length);
+      const params = new URLSearchParams(location.search), stableId = params.get('product_id'), productName = params.get('product_name'), productBrand = params.get('product_brand');
+      if (stableId || (productName && productBrand)) {
+        const normalize = value => String(value || '').trim().toLocaleLowerCase('pt-BR');
+        productId = stableId ? normalized.findIndex(product => product.databaseId === stableId) : normalized.findIndex(product => normalize(product.nome) === normalize(productName) && normalize(product.marca) === normalize(productBrand));
+      }
+      if (normalized.length && productId >= 0 && normalized[productId]) { produtos = normalized; renderProduct(); }
+      else if (stableId || (productName && productBrand)) renderProductUnavailable();
     } catch (error) { console.info('Detalhes locais usados enquanto o banco não está disponível.', error); }
   };
   const originalProductRender = renderProduct;
@@ -116,3 +122,4 @@ if (document.querySelector('#product-page-content')) {
   };
   loadProductFromSupabase();
 }
+

@@ -86,9 +86,9 @@ test('video follows add-to-cart and precedes product information at every viewpo
 
 test('product HTML and service-worker cache use matching updated asset versions', () => {
   assert.ok(productPage.includes('style.css?v=33'));
-  assert.ok(productPage.includes('produto.js?v=31'));
-  assert.ok(serviceWorker.includes("const CACHE='almeida-catalogo-v63'"));
+  assert.ok(productPage.includes('produto.js?v=32'));
+  assert.ok(serviceWorker.includes("const CACHE='almeida-catalogo-v64'"));
   assert.ok(serviceWorker.includes("'style.css?v=33'"));
-  assert.ok(serviceWorker.includes("'produto.js?v=31'"));
+  assert.ok(serviceWorker.includes("'produto.js?v=32'"));
 });
 
