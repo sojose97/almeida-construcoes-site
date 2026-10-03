@@ -1,5 +1,5 @@
 const money=cents=>(Number(cents||0)/100).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
-const productId=Number(new URLSearchParams(location.search).get('id'));
+const productParams=new URLSearchParams(location.search); let productId=Number(productParams.get('id')); const requestedProductId=productParams.get('product_id'),requestedProductName=productParams.get('product_name'),requestedProductBrand=productParams.get('product_brand');
 const container=document.querySelector('#product-page-content');
 function escapeHtml(value){const box=document.createElement('div');box.textContent=value??'';return box.innerHTML}
 const OFFICIAL_PRODUCT_VIDEOS=Object.freeze({
@@ -110,15 +110,31 @@ function renderProduct(){
   update();
   document.querySelector('#product-add').onclick=()=>{const selected=Number(document.querySelector('#product-variant').value),quantity=Math.max(1,Math.floor(Number(document.querySelector('#product-quantity').value)||1)),cart=JSON.parse(sessionStorage.getItem('almeida-cart')||'[]'),item=cart.find(i=>i.id===productId&&i.vi===selected);if(item)item.qty+=quantity;else cart.push({id:productId,vi:selected,qty:quantity});sessionStorage.setItem('almeida-cart',JSON.stringify(cart));location.href='index.html?cart=1'};
 }
+function renderProductLoading(){
+  if(!container)return;
+  container.innerHTML='<section class="missing-product" role="status" aria-live="polite"><p>Carregando produto...</p></section>';
+}
+function renderProductUnavailable(){
+  if(!container)return;
+  document.title='Produto indisponível · Almeida Construções';
+  container.innerHTML='<section class="missing-product" role="alert"><h1>Produto indisponível no momento</h1><p>Não foi possível carregar os dados atualizados. Verifique a conexão e tente novamente.</p><button type="button" id="retry-product-load">Tentar novamente</button><a class="primary-link" href="index.html">Voltar ao catálogo</a></section>';
+  container.querySelector('#retry-product-load').addEventListener('click',loadProductFromSupabase);
+}
 async function loadProductFromSupabase(){
   try{
-    const response=await fetch(ALMEIDA_SUPABASE_URL+'/rest/v1/products?active=eq.true&select=brand,name,subcategory,description,image_url,image_override_url,source_url,product_variants(id,name,price_cents,cash_price_cents,promo_price_cents,quantity_prices,active)&order=name.asc',{headers:{apikey:ALMEIDA_SUPABASE_KEY}});
+    const response=await fetch(ALMEIDA_SUPABASE_URL+'/rest/v1/products?active=eq.true&select=id,brand,name,subcategory,description,image_url,image_override_url,source_url,product_variants(id,name,price_cents,cash_price_cents,promo_price_cents,quantity_prices,active)&order=name.asc',{headers:{apikey:ALMEIDA_SUPABASE_KEY}});
     if(!response.ok)throw new Error('Catalog status '+response.status);
     const remote=await response.json();
-    const normalized=remote.map((p,id)=>({id,marca:p.brand,nome:p.name,grupo:p.subcategory,descricao:p.description,imagem:p.image_override_url||localProductImage(p.brand,p.name,p.image_url),fonte:p.source_url,variacoes:(p.product_variants||[]).filter(v=>v.active).map(v=>({id:v.id,nome:v.name,preco:v.price_cents,cash_preco:v.cash_price_cents,promo_preco:v.promo_price_cents,quantity_prices:v.quantity_prices||[]}))})).filter(p=>p.variacoes.length);
-    if(normalized.length){produtos=normalized;renderProduct()}
-  }catch(error){console.info('Detalhes locais usados enquanto o banco não está disponível.',error)}
+    const normalized=remote.map((p,id)=>({id,databaseId:p.id,marca:p.brand,nome:p.name,grupo:p.subcategory,descricao:p.description,imagem:p.image_override_url||localProductImage(p.brand,p.name,p.image_url),fonte:p.source_url,variacoes:(p.product_variants||[]).filter(v=>v.active).map(v=>({id:v.id,nome:v.name,preco:v.price_cents,cash_preco:v.cash_price_cents,promo_preco:v.promo_price_cents,quantity_prices:v.quantity_prices||[]}))})).filter(p=>p.variacoes.length);
+    if(requestedProductId)productId=normalized.findIndex(product=>product.databaseId===requestedProductId);
+    else if(requestedProductName&&requestedProductBrand){const normalize=value=>String(value||'').trim().toLocaleLowerCase('pt-BR');productId=normalized.findIndex(product=>normalize(product.nome)===normalize(requestedProductName)&&normalize(product.marca)===normalize(requestedProductBrand))}
+    if(normalized.length){produtos=normalized;if((requestedProductId||requestedProductName&&requestedProductBrand)&&productId<0){renderProductUnavailable();return}renderProduct();return}
+    renderProductUnavailable();
+  }catch(error){console.info('Não foi possível carregar os dados atualizados do produto.',error);renderProductUnavailable()}
 }
-renderProduct();
+renderProductLoading();
+if(Number.isSafeInteger(productId)&&productId>=0)loadProductFromSupabase();
+else renderProduct();
 if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js');
+
 

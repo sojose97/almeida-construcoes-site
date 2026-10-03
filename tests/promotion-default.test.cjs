@@ -43,8 +43,8 @@ test('promotion is the first selected tab on every page load and remains selecte
 
 test('PWA cache and page reference the same current promotion-filter script', () => {
   const version = index.match(/promotion-filter\.js\?v=(\d+)/)?.[1];
-  assert.equal(version, '3');
+  assert.equal(version, '4');
   assert.match(serviceWorker, new RegExp(`promotion-filter\\.js\\?v=${version}(?=['"])`));
-  assert.match(serviceWorker, /almeida-catalogo-v63/);
+  assert.match(serviceWorker, /almeida-catalogo-v64/);
 });
 
